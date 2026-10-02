@@ -185,8 +185,9 @@ To customize the Gemini AI Key or endpoints, update environment variables or `co
 ```yaml
 gemini:
   api:
-    url: ${GEMINI_API_URL:https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=}
+    url: ${GEMINI_API_URL:https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=}
     key: ${GEMINI_API_KEY:YOUR_GEMINI_API_KEY}
+
 
 ```
 
