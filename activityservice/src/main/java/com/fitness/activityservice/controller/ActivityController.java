@@ -17,21 +17,27 @@ public class ActivityController {
     private ActivityService activityService;
 
     @PostMapping
-    public ResponseEntity<ActivityResponse> trackActivity(@RequestBody ActivityRequest request, @RequestHeader("X-User-ID") String userId){
-        if (userId != null) {
+    public ResponseEntity<ActivityResponse> trackActivity(@RequestBody ActivityRequest request, @RequestHeader(value = "X-User-ID", required = false) String userId){
+        if (userId != null && !userId.isBlank()) {
             request.setUserId(userId);
+        }
+        if (request.getUserId() == null || request.getUserId().isBlank()) {
+            return ResponseEntity.badRequest().build();
         }
         return ResponseEntity.ok(activityService.trackActivity(request));
     }
 
     @GetMapping
-    public ResponseEntity<List<ActivityResponse>> getUserActivities(@RequestHeader("X-User-ID") String userId){
+    public ResponseEntity<List<ActivityResponse>> getUserActivities(@RequestHeader(value = "X-User-ID", required = false) String userId){
+        if (userId == null || userId.isBlank()) {
+            return ResponseEntity.badRequest().build();
+        }
         return ResponseEntity.ok(activityService.getUserActivities(userId));
     }
-
 
     @GetMapping("/{activityId}")
     public ResponseEntity<ActivityResponse> getActivity(@PathVariable String activityId){
         return ResponseEntity.ok(activityService.getActivityById(activityId));
     }
 }
+

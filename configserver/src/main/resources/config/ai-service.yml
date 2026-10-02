@@ -14,9 +14,12 @@ spring:
 
 
 eureka:
+  instance:
+    prefer-ip-address: true
   client:
     serviceUrl:
       defaultZone: http://localhost:8761/eureka/
+
 
 
 rabbitmq:
@@ -31,4 +34,4 @@ rabbitmq:
 gemini:
   api:
     url: ${GEMINI_API_URL:https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=}
-    key: ${GEMINI_API_KEY}
+    key: ${GEMINI_API_KEY:YOUR_GEMINI_API_KEY}

@@ -1,79 +1,107 @@
-import { Box, Button, Typography } from "@mui/material";
-import { useContext, useEffect, useState } from "react";
-import { AuthContext } from "react-oauth2-code-pkce";
-import { useDispatch } from "react-redux";
-import { BrowserRouter as Router, Navigate, Route, Routes, useLocation } from "react-router";
-import { setCredentials } from "./store/authSlice";
-import ActivityForm from "./components/ActivityForm";
-import ActivityList from "./components/ActivityList";
-import ActivityDetail from "./components/ActivityDetail";
+import React, { useContext, useEffect, useState } from 'react';
+import { Box, Button, Typography, Container, Paper, CssBaseline, ThemeProvider, createTheme } from '@mui/material';
+import { AuthContext } from 'react-oauth2-code-pkce';
+import { useDispatch } from 'react-redux';
+import { BrowserRouter as Router, Navigate, Route, Routes } from 'react-router';
+import { setCredentials, logout } from './store/authSlice';
+import Navbar from './components/Navbar';
+import ActivityForm from './components/ActivityForm';
+import ActivityList from './components/ActivityList';
+import ActivityDetail from './components/ActivityDetail';
+import FitnessCenterIcon from '@mui/icons-material/FitnessCenter';
 
-const ActvitiesPage = () => {
-  return (<Box sx={{ p: 2, border: '1px dashed grey' }}>
-    <ActivityForm onActivitiesAdded = {() => window.location.reload()} />
-    <ActivityList />
-  </Box>);
-}
+const theme = createTheme({
+  palette: {
+    primary: { main: '#1976d2' },
+    secondary: { main: '#7c4dff' },
+    background: { default: '#f4f6f9' },
+  },
+  typography: {
+    fontFamily: '"Inter", "Roboto", "Helvetica", "Arial", sans-serif',
+  },
+});
+
+const ActivitiesDashboard = () => {
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
+
+  const handleActivityAdded = () => {
+    setRefreshTrigger((prev) => prev + 1);
+  };
+
+  return (
+    <Container maxWidth="lg" sx={{ py: 4 }}>
+      <ActivityForm onActivityAdded={handleActivityAdded} />
+      <ActivityList refreshTrigger={refreshTrigger} />
+    </Container>
+  );
+};
 
 function App() {
-  const { token, tokenData, logIn, logOut, isAuthenticated } = useContext(AuthContext);
+  const { token, tokenData, logIn, logOut } = useContext(AuthContext);
   const dispatch = useDispatch();
-  const [authReady, setAuthReady] = useState(false);
-  
+
   useEffect(() => {
-    if (token) {
-      dispatch(setCredentials({token, user: tokenData}));
-      setAuthReady(true);
+    if (token && tokenData) {
+      dispatch(setCredentials({ token, user: tokenData }));
     }
   }, [token, tokenData, dispatch]);
 
+  const handleLogout = () => {
+    dispatch(logout());
+    localStorage.clear();
+    logOut();
+  };
+
   return (
-    <Router>
-      {!token ? (
-      <Box
-      sx={{
-        height: "100vh",
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        justifyContent: "center",
-        textAlign: "center",
-      }}
-    >
-      <Typography variant="h4" gutterBottom>
-        Welcome to the Fitness Tracker App
-      </Typography>
-      <Typography variant="subtitle1" sx={{ mb: 3 }}>
-        Please login to access your activities
-      </Typography>
-      <Button variant="contained" color="primary" size="large" onClick={() => {
-                logIn();
-              }}>
-        LOGIN
-      </Button>
-    </Box>
-            ) : (
-              // <div>
-              //   <pre>{JSON.stringify(tokenData, null, 2)}</pre>
-              //   <pre>{JSON.stringify(token, null, 2)}</pre>
-              // </div>
-
-             
-
-              <Box sx={{ p: 2, border: '1px dashed grey' }}>
-                 <Button variant="contained" color="secondary" onClick={logOut}>
-                  Logout
-                </Button>
-              <Routes>
-                <Route path="/activities" element={<ActvitiesPage />}/>
-                <Route path="/activities/:id" element={<ActivityDetail />}/>
-
-                <Route path="/" element={token ? <Navigate to="/activities" replace/> : <div>Welcome! Please Login.</div>} />
-              </Routes>
-            </Box>
-            )}
-    </Router>
-  )
+    <ThemeProvider theme={theme}>
+      <CssBaseline />
+      <Router>
+        {!token ? (
+          <Box
+            sx={{
+              height: '100vh',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              textAlign: 'center',
+              bgcolor: '#f4f6f9',
+              px: 2
+            }}
+          >
+            <Paper elevation={4} sx={{ p: 5, borderRadius: 4, maxWidth: 450, textAlign: 'center', bgcolor: '#fff' }}>
+              <FitnessCenterIcon sx={{ fontSize: 60, color: 'primary.main', mb: 2 }} />
+              <Typography variant="h4" fontWeight="700" gutterBottom>
+                FitnessPulse AI
+              </Typography>
+              <Typography variant="body1" color="text.secondary" sx={{ mb: 4 }}>
+                Log workouts, track your calories, and get personalized recommendations driven by Gemini AI.
+              </Typography>
+              <Button
+                variant="contained"
+                color="primary"
+                size="large"
+                fullWidth
+                onClick={() => logIn()}
+                sx={{ borderRadius: 2.5, py: 1.5, fontSize: '1.05rem', fontWeight: 600, textTransform: 'none' }}
+              >
+                Log In to Fitness App
+              </Button>
+            </Paper>
+          </Box>
+        ) : (
+          <Box sx={{ minHeight: '100vh', bgcolor: 'background.default' }}>
+            <Navbar user={tokenData} onLogout={handleLogout} />
+            <Routes>
+              <Route path="/activities" element={<ActivitiesDashboard />} />
+              <Route path="/activities/:id" element={<ActivityDetail />} />
+              <Route path="/" element={<Navigate to="/activities" replace />} />
+            </Routes>
+          </Box>
+        )}
+      </Router>
+    </ThemeProvider>
+  );
 }
 
-export default App
+export default App;
